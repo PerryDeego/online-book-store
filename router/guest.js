@@ -29,18 +29,19 @@ guest_users.post("/register",async (req,res) => {
   }
 });
 
-//---- GET request: Retrieve all book list available in the online store
-guest_users.get('/',function (req, res) {
-  // Validate if book collection contain values
-  if ( Object.keys( books ).length === 0) {
+///---- GET request: Retrieve all book list available in the online store
+guest_users.get('/', async function (req, res) {
+  // Validate if book collection contains values
+  if (Object.keys(books).length === 0) {
     return res.status(404).json({ message: `No books found!` }); // Return 404 if not found
   }
   
   // Send JSON response with formatted books collection to the Client
-  res.send(JSON.stringify( books, null, 4 ));
+  return await res.send(JSON.stringify(books, null, 4));
 });
 
-// GET request: book details based on ISBN
+
+// GET request: Search book based on ISBN - Using Promise
 guest_users.get('/isbn/:isbn', function (req, res) {
   // Retrieve the isbn from the request parameters
   const isbn = req.params.isbn.trim(); // Trim any whitespace
@@ -50,17 +51,24 @@ guest_users.get('/isbn/:isbn', function (req, res) {
     return res.status(400).json({ message: "ISBN is required." });
   }
 
-  // Find the book by matching the isbn
-  const book = Object.values( books ).find( book => book.isbn === isbn );
-
-  // Validate that the book with the given ISBN exists
-  if (!book) {
-    return res.status(404).json({ message: `Book with ISBN ${isbn} not found.` });
-  }
-  
-  res.status(200).json( book ); // Return a success response with the book information
+  // Create a promise to find the book by ISBN
+  return new Promise((resolve, reject) => {
+    const book = Object.values(books).find(book => book.isbn === isbn);
+    
+    // Resolve or reject based on whether the book was found
+    if (book) {
+      resolve(book);
+    } else {
+      reject(new Error(`Book with ISBN ${isbn} not found.`));
+    }
+  })
+  .then((book) => {
+    return res.status(200).json(book);
+  })
+  .catch((error) => {
+    return res.status(404).json({ message: error.message });
+  });
 });
-
 
 //---- GET request: book details based on author
 guest_users.get('/author/:author',function (req, res) {
@@ -123,6 +131,21 @@ guest_users.get('/review/:isbn',function (req, res) {
   }
 
   return res.status(200).json( book.reviews );
+});
+
+//---- GET request: Retrieve all reviewed books in the collection
+guest_users.get('/book-reviews', async function (req, res) {
+  
+  // Filter books that have reviews
+  const reviewedBooks = Object.values(books).filter(book => book.reviews && book.reviews.length > 0);
+  
+  // Validate if book collection contains reviewed books
+  if (reviewedBooks.length === 0) {
+    return res.status(404).json({ message: `No reviewed books found!` }); // Return 404 if not found
+  }
+  
+  // Send JSON response with the books collection to the Client
+  return await res.status(200).json(reviewedBooks); 
 });
 
 module.exports.guest = guest_users;
