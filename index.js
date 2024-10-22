@@ -4,8 +4,8 @@
 const express = require('express'); 
 const jwt = require('jsonwebtoken'); 
 const session = require('express-session');
-const subscriber_routes = require('./router/users_auth.js').authenticated; // Import authenticated subscriber routes
-const guest_routes = require('./router/guest.js').guest; // Import guest routes
+const subscriber_routes = require('./router/subscribers.js').authenticated; // Import authenticated subscriber routes
+const guest_routes = require('./router/guests.js').guest; // Import guest routes
 
 // Create an instance of an Express application
 const app = express();

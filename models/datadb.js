@@ -1,3 +1,6 @@
+//---- Declaration of users array
+let users = [];
+
 let books = {
       1: {"isbn": "0-19-852663-6", "author": "Chinua Achebe", "title": "Things Fall Apart"},
       2: {"isbn": "0-306-40615-2", "author": "Hans Christian Andersen", "title": "Fairy tales"},
@@ -16,4 +19,7 @@ let books = {
       15: {"isbn": "163-1-64833-645-7", "author": "Renj A. Noon", "title": "Changing The Life Style With Technology"}
 }
 
-module.exports=books;
+
+module.exports.books=books;
+module.exports.users=users;
+

@@ -1,9 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-let books = require("../models/booksdb.js");
-let isValid = require("./users_auth.js").isValid;
-let users = require("./users_auth.js").users;
+let books = require("../models/datadb.js").books;
+//let isValid = require("./subscribers.js").isValid;
+let users = require("./subscribers.js").users;
 const guest_users = express.Router();
+
+//---- Validate if a provided username already exists 
+const isValid = ( username ) => {
+  return users.some((user) => user.username === username); // Returns a boolean
+}
+// --------------------------------------------------------------------------
 
 //---- POST request: Register a new user
 guest_users.post("/register",async (req,res) => {
@@ -28,8 +34,9 @@ guest_users.post("/register",async (req,res) => {
     return res.status(409).json({ message: "User already exists!" }); // Return 201 user exist
   }
 });
+// ---------------------------------------------------------------------------------------------------
 
-///---- GET request: Retrieve all book list available in the online store
+//---- GET request: Retrieve all book list available in the online store
 guest_users.get('/', async function (req, res) {
   // Validate if book collection contains values
   if (Object.keys(books).length === 0) {
@@ -39,7 +46,7 @@ guest_users.get('/', async function (req, res) {
   // Send JSON response with formatted books collection to the Client
   return await res.send(JSON.stringify(books, null, 4));
 });
-
+// ---------------------------------------------------------------------------------------------------
 
 // GET request: Search book based on ISBN - Using Promise
 guest_users.get('/isbn/:isbn', function (req, res) {
@@ -69,6 +76,7 @@ guest_users.get('/isbn/:isbn', function (req, res) {
     return res.status(404).json({ message: error.message });
   });
 });
+// ---------------------------------------------------------------------------------------------------
 
 //---- GET request: book details based on author
 guest_users.get('/author/:author',function (req, res) {
@@ -90,7 +98,7 @@ guest_users.get('/author/:author',function (req, res) {
 
   res.status(200).json(book); // Return a success response with the book information
 });
-
+// ---------------------------------------------------------------------------------------------------
 
 //---- GET request: Get all books based on title
 guest_users.get('/title/:title',function (req, res) {
@@ -112,7 +120,7 @@ guest_users.get('/title/:title',function (req, res) {
 
   res.status(200).json( book ); // Return a success response with the book information
 });
-
+// ---------------------------------------------------------------------------------------------------
 
 //---- GET request:  Get book review
 guest_users.get('/review/:isbn',function (req, res) {
@@ -126,12 +134,13 @@ guest_users.get('/review/:isbn',function (req, res) {
   // Find the book by matching the isbn
   const book = Object.values( books ).find( book => book.isbn === isbn); // Directly access the friend using the email as a key
 
-  if ( !book ) {
+  if ( !Array.isArray(book.reviews) ) {
     return res.status(404).json({ message: `Book with ${isbn} not found.` });
   }
 
   return res.status(200).json( book.reviews );
 });
+// ---------------------------------------------------------------------------------------------------
 
 //---- GET request: Retrieve all reviewed books in the collection
 guest_users.get('/book-reviews', async function (req, res) {
@@ -140,7 +149,7 @@ guest_users.get('/book-reviews', async function (req, res) {
   const reviewedBooks = Object.values(books).filter(book => book.reviews && book.reviews.length > 0);
   
   // Validate if book collection contains reviewed books
-  if (reviewedBooks.length === 0) {
+  if ( reviewedBooks.length === 0 ) {
     return res.status(404).json({ message: `No reviewed books found!` }); // Return 404 if not found
   }
   
